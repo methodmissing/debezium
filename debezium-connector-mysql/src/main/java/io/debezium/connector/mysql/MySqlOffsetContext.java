@@ -39,6 +39,8 @@ public class MySqlOffsetContext extends CommonOffsetContext<SourceInfo> {
     private long restartBinlogPosition = 0L;
     private int restartRowsToSkip = 0;
     private long restartEventsToSkip = 0;
+    private long restartLastCommitted = 0L;
+    private long restartSequenceNumber  = 0L;
     private long currentEventLengthInBytes = 0;
     private boolean inTransaction = false;
     private String transactionId = null;
@@ -184,6 +186,9 @@ public class MySqlOffsetContext extends CommonOffsetContext<SourceInfo> {
             offsetContext.setInitialSkips(longOffsetValue(offset, EVENTS_TO_SKIP_OFFSET_KEY),
                     (int) longOffsetValue(offset, SourceInfo.BINLOG_ROW_IN_EVENT_OFFSET_KEY));
             offsetContext.setCompletedGtidSet((String) offset.get(GTID_SET_KEY)); // may be null
+            long lastCommitted = longOffsetValue(offset, SourceInfo.LAST_COMMITTED_KEY);
+            long sequenceNumber = longOffsetValue(offset, SourceInfo.SEQUENCE_NUMBER_KEY);
+            offsetContext.setLogicalClock(lastCommitted, sequenceNumber);
             return offsetContext;
         }
 
@@ -294,6 +299,12 @@ public class MySqlOffsetContext extends CommonOffsetContext<SourceInfo> {
         }
     }
 
+    public void setLogicalClock(long lastCommitted, long sequenceNumber) {
+        sourceInfo.setLogicalClock(lastCommitted, sequenceNumber);
+        this.restartLastCommitted = lastCommitted;
+        this.restartSequenceNumber = sequenceNumber;
+    }
+
     public SourceInfo getSource() {
         return sourceInfo;
     }
@@ -304,6 +315,8 @@ public class MySqlOffsetContext extends CommonOffsetContext<SourceInfo> {
         this.restartEventsToSkip = 0;
         this.restartBinlogFilename = sourceInfo.binlogFilename();
         this.restartBinlogPosition = sourceInfo.binlogPosition();
+        this.restartLastCommitted = sourceInfo.lastCommitted();
+        this.restartSequenceNumber = sourceInfo.sequenceNumber();
         this.inTransaction = true;
         setTransactionId();
     }
@@ -312,6 +325,8 @@ public class MySqlOffsetContext extends CommonOffsetContext<SourceInfo> {
         this.restartGtidSet = this.currentGtidSet;
         this.restartBinlogFilename = sourceInfo.binlogFilename();
         this.restartBinlogPosition = sourceInfo.binlogPosition() + this.currentEventLengthInBytes;
+        this.restartLastCommitted = sourceInfo.lastCommitted();
+        this.restartSequenceNumber = sourceInfo.sequenceNumber();
         this.restartRowsToSkip = 0;
         this.restartEventsToSkip = 0;
         this.inTransaction = false;

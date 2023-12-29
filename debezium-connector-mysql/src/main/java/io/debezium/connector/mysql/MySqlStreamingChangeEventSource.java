@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -193,6 +194,11 @@ public class MySqlStreamingChangeEventSource implements StreamingChangeEventSour
         boolean filterDmlEventsByGtidSource = configuration.getBoolean(MySqlConnectorConfig.GTID_SOURCE_FILTER_DML_EVENTS);
         gtidDmlSourceFilter = filterDmlEventsByGtidSource ? connectorConfig.gtidSourceFilter() : null;
         isGtidModeEnabled = connection.isGtidModeEnabled();
+
+        final int applierThreads = connectorConfig.parallelReplicationApplierThreads();
+        if (applierThreads != 0) {
+            final ExecutorService executor = Threads.newFixedThreadPool(MySqlConnector.class, taskContext.getConnectorName(), "applier-threads", applierThreads);
+        }
     }
 
     protected void onEvent(MySqlOffsetContext offsetContext, Event event) {
@@ -426,6 +432,10 @@ public class MySqlStreamingChangeEventSource implements StreamingChangeEventSour
             }
         }
         metrics.onGtidChange(gtid);
+        final long lastCommitted = gtidEvent.getLastCommitted();
+        final long sequenceNumber = gtidEvent.getSequenceNumber();
+        offsetContext.setLogicalClock(lastCommitted, sequenceNumber);
+        metrics.setCommitGroupSize(sequenceNumber - lastCommitted);
     }
 
     protected void handleMariaDbGtidEvent(MySqlPartition partition, MySqlOffsetContext offsetContext, Event event) throws InterruptedException {

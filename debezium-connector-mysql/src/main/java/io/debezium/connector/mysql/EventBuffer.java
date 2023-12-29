@@ -191,7 +191,7 @@ class EventBuffer {
     }
 
     /**
-     * Sends all events from the buffer int a final handler. For large transactions it executes rewind
+     * Sends all events from the buffer into a final handler. For large transactions it executes rewind
      * of binlog reader back to the first event that was not stored in the buffer.
      *
      * @param partition the partition where the transaction was committed

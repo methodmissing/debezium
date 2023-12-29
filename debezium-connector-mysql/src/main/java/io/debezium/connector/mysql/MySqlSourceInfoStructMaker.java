@@ -27,6 +27,8 @@ public class MySqlSourceInfoStructMaker extends AbstractSourceInfoStructMaker<So
                 .field(SourceInfo.BINLOG_ROW_IN_EVENT_OFFSET_KEY, Schema.INT32_SCHEMA)
                 .field(SourceInfo.THREAD_KEY, Schema.OPTIONAL_INT64_SCHEMA)
                 .field(SourceInfo.QUERY_KEY, Schema.OPTIONAL_STRING_SCHEMA)
+                .field(SourceInfo.LAST_COMMITTED_KEY, Schema.OPTIONAL_INT64_SCHEMA)
+                .field(SourceInfo.SEQUENCE_NUMBER_KEY, Schema.OPTIONAL_INT64_SCHEMA)
                 .build();
     }
 
@@ -54,6 +56,12 @@ public class MySqlSourceInfoStructMaker extends AbstractSourceInfoStructMaker<So
         }
         if (sourceInfo.getQuery() != null) {
             result.put(SourceInfo.QUERY_KEY, sourceInfo.getQuery());
+        }
+        if (sourceInfo.getCurrentLastCommitted() != 0) {
+            result.put(SourceInfo.LAST_COMMITTED_KEY, sourceInfo.getCurrentLastCommitted());
+        }
+        if (sourceInfo.getCurrentSequenceNumber() != 0) {
+            result.put(SourceInfo.SEQUENCE_NUMBER_KEY, sourceInfo.getCurrentSequenceNumber());
         }
         return result;
     }

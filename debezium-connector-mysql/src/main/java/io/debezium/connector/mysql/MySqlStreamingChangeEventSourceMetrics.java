@@ -35,6 +35,7 @@ public class MySqlStreamingChangeEventSourceMetrics extends DefaultStreamingChan
     private final AtomicBoolean isGtidModeEnabled = new AtomicBoolean(false);
     private final AtomicLong milliSecondsBehindMaster = new AtomicLong();
     private final AtomicReference<String> lastTransactionId = new AtomicReference<>();
+    private final AtomicLong commitGroupSize = new AtomicLong();
 
     public MySqlStreamingChangeEventSourceMetrics(MySqlTaskContext taskContext, ChangeEventQueueMetrics changeEventQueueMetrics, EventMetadataProvider metadataProvider) {
         super(taskContext, changeEventQueueMetrics, metadataProvider);
@@ -103,6 +104,7 @@ public class MySqlStreamingChangeEventSourceMetrics extends DefaultStreamingChan
         numberOfLargeTransactions.set(0);
         lastTransactionId.set(null);
         isGtidModeEnabled.set(false);
+        commitGroupSize.set(0);
     }
 
     @Override
@@ -153,6 +155,10 @@ public class MySqlStreamingChangeEventSourceMetrics extends DefaultStreamingChan
         milliSecondsBehindMaster.set(value);
     }
 
+    public void setCommitGroupSize(long value) {
+        commitGroupSize.set(value);
+    }
+
     @Override
     public String[] getCapturedTables() {
         return schema.capturedTablesAsStringArray();
@@ -161,6 +167,10 @@ public class MySqlStreamingChangeEventSourceMetrics extends DefaultStreamingChan
     @Override
     public long getMilliSecondsBehindSource() {
         return milliSecondsBehindMaster.get();
+    }
+
+    public long getCommitGroupSize() {
+        return commitGroupSize.get();
     }
 
     @Override

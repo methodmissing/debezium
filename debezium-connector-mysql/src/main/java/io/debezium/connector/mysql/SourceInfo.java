@@ -99,11 +99,15 @@ public final class SourceInfo extends BaseSourceInfo {
     public static final String BINLOG_ROW_IN_EVENT_OFFSET_KEY = "row";
     public static final String THREAD_KEY = "thread";
     public static final String QUERY_KEY = "query";
+    public static final String LAST_COMMITTED_KEY = "last_committed";
+    public static final String SEQUENCE_NUMBER_KEY = "sequence_number";
 
     private String currentGtid;
     private String currentBinlogFilename;
     private long currentBinlogPosition = 0L;
     private int currentRowNumber = 0;
+    private long currentLastCommitted = 0L;
+    private long currentSequenceNumber = 0L;
     private long serverId = 0;
     private Instant sourceTime = null;
     private long threadId = -1L;
@@ -199,6 +203,11 @@ public final class SourceInfo extends BaseSourceInfo {
         sourceTime = timestamp;
     }
 
+    public void setLogicalClock(long lastCommitted, long sequenceNumber) {
+        this.currentLastCommitted = lastCommitted;
+        this.currentSequenceNumber = sequenceNumber;
+    }
+
     /**
      * Set the identifier of the MySQL thread that generated the most recent event.
      *
@@ -224,6 +233,14 @@ public final class SourceInfo extends BaseSourceInfo {
      */
     public long binlogPosition() {
         return currentBinlogPosition;
+    }
+
+    public long lastCommitted() {
+        return currentLastCommitted;
+    }
+
+    public long sequenceNumber() {
+        return currentSequenceNumber;
     }
 
     long getServerId() {
@@ -262,6 +279,14 @@ public final class SourceInfo extends BaseSourceInfo {
 
     int getCurrentRowNumber() {
         return currentRowNumber;
+    }
+
+    long getCurrentLastCommitted() {
+        return currentLastCommitted;
+    }
+
+    long getCurrentSequenceNumber() {
+        return currentSequenceNumber;
     }
 
     @Override

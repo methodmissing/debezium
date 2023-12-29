@@ -618,6 +618,8 @@ public class MySqlConnectorConfig extends HistorizedRelationalDatabaseConnectorC
      */
     private static final int DEFAULT_BINLOG_BUFFER_SIZE = 0;
 
+    private static final int DEFAULT_APPLIER_THREADS = 0;
+
     public static final Field PORT = RelationalDatabaseConnectorConfig.PORT
             .withDefault(DEFAULT_PORT);
 
@@ -981,6 +983,17 @@ public class MySqlConnectorConfig extends HistorizedRelationalDatabaseConnectorC
     public static final Field STORE_ONLY_CAPTURED_DATABASES_DDL = HistorizedRelationalDatabaseConnectorConfig.STORE_ONLY_CAPTURED_DATABASES_DDL
             .withDefault(true);
 
+    public static final Field APPLIER_THREADS = Field.create("applier.threads")
+            .withDisplayName("Parallel replication applier threads")
+            .withType(Type.INT)
+            .withGroup(Field.createGroupEntry(Field.Group.CONNECTION_ADVANCED, 17))
+            .withWidth(Width.SHORT)
+            .withImportance(Importance.MEDIUM)
+            .withDescription(
+                    "Parallel replication applier threads")
+            .withDefault(DEFAULT_APPLIER_THREADS)
+            .withValidation(Field::isPositiveInteger);
+
     private static final ConfigDefinition CONFIG_DEFINITION = HistorizedRelationalDatabaseConnectorConfig.CONFIG_DEFINITION.edit()
             .name("MySQL")
             .excluding(
@@ -1019,7 +1032,8 @@ public class MySqlConnectorConfig extends HistorizedRelationalDatabaseConnectorC
                     INCREMENTAL_SNAPSHOT_CHUNK_SIZE,
                     INCREMENTAL_SNAPSHOT_ALLOW_SCHEMA_CHANGES,
                     STORE_ONLY_CAPTURED_DATABASES_DDL,
-                    CONNECTOR_ADAPTER)
+                    CONNECTOR_ADAPTER,
+                    APPLIER_THREADS)
             .events(
                     INCLUDE_SQL_QUERY,
                     TABLE_IGNORE_BUILTIN,
@@ -1283,6 +1297,10 @@ public class MySqlConnectorConfig extends HistorizedRelationalDatabaseConnectorC
 
     public long rowCountForLargeTable() {
         return config.getLong(MySqlConnectorConfig.ROW_COUNT_FOR_STREAMING_RESULT_SETS);
+    }
+
+    public int parallelReplicationApplierThreads() {
+        return config.getInteger(MySqlConnectorConfig.APPLIER_THREADS);
     }
 
     @Override

@@ -66,4 +66,6 @@ public interface MySqlStreamingChangeEventSourceMetricsMXBean extends StreamingC
      * @return true if using Gtids, false if not.
      */
     boolean getIsGtidModeEnabled();
+
+    long getCommitGroupSize();
 }
